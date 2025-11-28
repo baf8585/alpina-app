@@ -1,5 +1,6 @@
 import streamlit as st
 import google.generativeai as genai
+import os
 
 # --- CONFIGURATION DE LA PAGE ---
 st.set_page_config(
@@ -13,7 +14,8 @@ st.markdown("""
     <style>
     .main-header {text-align: center; color: #003366;}
     .sub-text {text-align: center; color: #666;}
-    .stButton>button {width: 100%; background-color: #003366; color: white;}
+    .stButton>button {width: 100%; background-color: #003366; color: white; font-weight: bold; padding: 10px;}
+    .report-box {background-color: #f0f2f6; padding: 20px; border-radius: 10px; border-left: 5px solid #003366;}
     </style>
 """, unsafe_allow_html=True)
 
@@ -22,25 +24,44 @@ st.markdown("<h1 class='main-header'>🏔️ AlpinaAi</h1>", unsafe_allow_html=T
 st.markdown("<p class='sub-text'>Découvrez votre profil professionnel et votre potentiel sur le marché Suisse en 5 minutes.</p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# --- SIDEBAR (Clé API) ---
+# --- GESTION DE LA CLÉ API (VIA SECRETS) ---
+# Le site va chercher la clé tout seul. Plus besoin de la taper.
+try:
+    api_key = st.secrets["GOOGLE_API_KEY"]
+except:
+    st.error("⚠️ Erreur de configuration : La clé API est manquante dans les Secrets Streamlit.")
+    st.stop()
+
+# --- SIDEBAR (Contact uniquement) ---
 with st.sidebar:
-    st.header("🔑 Configuration")
-    api_key = st.text_input("Entrez votre Clé API Google", type="password")
-    st.info("Cette clé sert à connecter l'intelligence AlpinaAi. Elle n'est pas stockée.")
+    st.image("https://cdn-icons-png.flaticon.com/512/2910/2910768.png", width=100) # Petite montagne
+    st.header("À propos")
+    st.write("AlpinaAi utilise l'intelligence artificielle pour révéler les talents de la nouvelle génération.")
     st.markdown("---")
-    st.write("**Contact & Support**")
+    st.write("**Contact Pro**")
     st.write("contact@alpinaai.ch")
 
 # --- LE CERVEAU (Prompt Système) ---
 SYSTEM_PROMPT = """
 Tu es AlpinaAi, expert en recrutement suisse. Analyse les réponses QCM ci-dessous pour un profil Junior (20-30 ans).
-Génère une réponse structurée ainsi :
-1. 💎 **Votre Signature Professionnelle** : Un titre valorisant (ex: "Le Diplomate Stratège").
-2. 🧠 **Analyse des Forces** : Explication dense des soft-skills et du fonctionnement.
-3. ⚠️ **Zone de Vigilance** : Un point faible bienveillant à surveiller.
-4. 🇨🇭 **Matching Marché Suisse** : 3 secteurs précis (Banque, Pharma, Tech, Luxe, ONG, etc.) adaptés au profil.
-5. 🎁 **L'Appel à l'Action** : Invite à contacter AlpinaAi pour le pack complet.
-Ton : Expert, Suisse, Bienveillant.
+Génère une réponse structurée ainsi, avec une mise en forme Markdown propre :
+
+### 💎 Signature Professionnelle : [Un Titre Valorisant]
+
+**🧠 Analyse des Forces :**
+[Un paragraphe dense et expert de 3-4 lignes sur les soft-skills et le fonctionnement psychologique.]
+
+**⚠️ Zone de Vigilance :**
+[Une phrase bienveillante sur un point à surveiller.]
+
+**🇨🇭 Potentiel Marché Suisse :**
+* **[Secteur 1]** : [Pourquoi ?]
+* **[Secteur 2]** : [Pourquoi ?]
+* **[Secteur 3]** : [Pourquoi ?]
+
+---
+**🎁 Conseil Alpina :**
+[Conclusion encourageante et invitation à contacter l'équipe pour le placement.]
 """
 
 # --- LES QUESTIONS ---
@@ -89,14 +110,12 @@ with st.form("quiz_form"):
 
 # --- LOGIQUE D'ANALYSE ---
 if submitted:
-    if not api_key:
-        st.error("⚠️ Veuillez entrer votre Clé API dans la barre latérale à gauche.")
-    elif not user_name:
+    if not user_name:
         st.warning("Veuillez entrer votre prénom pour personnaliser l'analyse.")
     else:
-        with st.spinner("AlpinaAi analyse vos réponses... (Traitement en cours)"):
+        with st.spinner("🧠 AlpinaAi connecte ses neurones... Analyse en cours..."):
             try:
-                # 1. Configurer Gemini
+                # 1. Configurer Gemini avec la clé secrète
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel('gemini-pro')
                 
@@ -111,9 +130,13 @@ if submitted:
                 response = model.generate_content(full_prompt)
                 
                 # 4. Afficher le résultat
+                st.balloons() # Petite animation festive
                 st.success("Analyse terminée !")
+                
+                st.markdown(f"<div class='report-box'>", unsafe_allow_html=True)
                 st.markdown(f"## Bilan Flash pour {user_name}")
                 st.markdown(response.text)
+                st.markdown("</div>", unsafe_allow_html=True)
                 
             except Exception as e:
-                st.error(f"Une erreur est survenue : {e}")
+                st.error(f"Oups, une erreur technique est survenue. Vérifiez la clé API ou réessayez. Détail: {e}")
