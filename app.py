@@ -1,0 +1,119 @@
+import streamlit as st
+import google.generativeai as genai
+
+# --- CONFIGURATION DE LA PAGE ---
+st.set_page_config(
+    page_title="AlpinaAi - Bilan Flash",
+    page_icon="🏔️",
+    layout="centered"
+)
+
+# --- STYLE VISUEL (CSS) ---
+st.markdown("""
+    <style>
+    .main-header {text-align: center; color: #003366;}
+    .sub-text {text-align: center; color: #666;}
+    .stButton>button {width: 100%; background-color: #003366; color: white;}
+    </style>
+""", unsafe_allow_html=True)
+
+# --- EN-TÊTE ---
+st.markdown("<h1 class='main-header'>🏔️ AlpinaAi</h1>", unsafe_allow_html=True)
+st.markdown("<p class='sub-text'>Découvrez votre profil professionnel et votre potentiel sur le marché Suisse en 5 minutes.</p>", unsafe_allow_html=True)
+st.markdown("---")
+
+# --- SIDEBAR (Clé API) ---
+with st.sidebar:
+    st.header("🔑 Configuration")
+    api_key = st.text_input("Entrez votre Clé API Google", type="password")
+    st.info("Cette clé sert à connecter l'intelligence AlpinaAi. Elle n'est pas stockée.")
+    st.markdown("---")
+    st.write("**Contact & Support**")
+    st.write("contact@alpinaai.ch")
+
+# --- LE CERVEAU (Prompt Système) ---
+SYSTEM_PROMPT = """
+Tu es AlpinaAi, expert en recrutement suisse. Analyse les réponses QCM ci-dessous pour un profil Junior (20-30 ans).
+Génère une réponse structurée ainsi :
+1. 💎 **Votre Signature Professionnelle** : Un titre valorisant (ex: "Le Diplomate Stratège").
+2. 🧠 **Analyse des Forces** : Explication dense des soft-skills et du fonctionnement.
+3. ⚠️ **Zone de Vigilance** : Un point faible bienveillant à surveiller.
+4. 🇨🇭 **Matching Marché Suisse** : 3 secteurs précis (Banque, Pharma, Tech, Luxe, ONG, etc.) adaptés au profil.
+5. 🎁 **L'Appel à l'Action** : Invite à contacter AlpinaAi pour le pack complet.
+Ton : Expert, Suisse, Bienveillant.
+"""
+
+# --- LES QUESTIONS ---
+questions = {
+    "Q1_Deadline": "Un projet important tombe avec une deadline très courte. Réaction ?",
+    "Q2_Bureau": "Votre espace de travail idéal ressemble à quoi ?",
+    "Q3_Changement": "On vous impose une nouvelle méthode de travail. Votre avis ?",
+    "Q4_Reunion": "En réunion, quel est votre comportement ?",
+    "Q5_Conflit": "Un désaccord total avec un collègue. Que faites-vous ?",
+    "Q6_Manager": "Pour vous, un bon manager c'est...",
+    "Q7_Motivation": "Qu'est-ce qui vous ferait changer de job demain ?",
+    "Q8_Decision": "Il manque 30% des infos pour décider. On fait quoi ?",
+    "Q9_Echec": "Votre définition de l'échec professionnel ?",
+    "Q10_Structure": "Dans quel type d'entreprise vous sentez-vous le mieux ?",
+    "Q11_Apero": "Vendredi 17h, apéro d'équipe. Vous êtes où ?",
+    "Q12_Reve": "Votre rêve ultime de carrière ?"
+}
+
+options = {
+    "Q1_Deadline": ["Je fonce ! L'adrénaline m'aide.", "Je planifie tout minute par minute.", "Je réunis l'équipe, impossible seul.", "Je négocie le délai pour la qualité."],
+    "Q2_Bureau": ["Chaos créatif, mais je m'y retrouve.", "Minimaliste et ultra-rangé.", "Des post-its partout.", "Propre avec ma touche perso."],
+    "Q3_Changement": ["Super ! J'adore la nouveauté.", "Sceptique. Pourquoi changer ?", "J'analyse d'abord les gains.", "Je demande l'avis des autres."],
+    "Q4_Reunion": ["J'écoute et je synthétise.", "Je lance plein d'idées.", "Je pose les questions difficiles.", "J'observe et je note."],
+    "Q5_Conflit": ["Je sors les faits et les chiffres.", "Je cherche le compromis.", "Je maintiens ma position fermement.", "On teste les deux solutions."],
+    "Q6_Manager": ["Quelqu'un qui me laisse libre.", "Un coach présent au quotidien.", "Un visionnaire inspirant.", "Un protecteur bienveillant."],
+    "Q7_Motivation": ["L'argent et les bonus.", "Apprendre une tech de pointe.", "Une mission sociale/écologique.", "Le pouvoir et le management."],
+    "Q8_Decision": ["Je décide à l'instinct.", "Je refuse sans toutes les données.", "Je consulte des experts.", "Je fais un scénario 'Pire Cas'."],
+    "Q9_Echec": ["Une honte à éviter.", "Une opportunité d'apprendre.", "Inévitable pour innover.", "Un manque de préparation."],
+    "Q10_Structure": ["Grande structure prestigieuse (Banque/Pharma).", "PME familiale suisse.", "Start-up chaos & croissance.", "Indépendant / Freelance."],
+    "Q11_Apero": ["Premier au bar pour le réseau !", "30min par politesse.", "Je finis mes dossiers.", "C'est moi l'organisateur !"],
+    "Q12_Reve": ["Expert mondial reconnu.", "CEO de ma propre boîte.", "Équilibre parfait Vie Pro/Perso.", "Impact positif sur la société."]
+}
+
+# --- AFFICHAGE DU FORMULAIRE ---
+user_name = st.text_input("Votre Prénom", placeholder="Ex: Thomas")
+
+reponses_user = {}
+
+with st.form("quiz_form"):
+    for key, question_text in questions.items():
+        st.write(f"**{question_text}**")
+        reponses_user[key] = st.radio(f"Choix pour {key}", options[key], label_visibility="collapsed")
+        st.write("---")
+    
+    submitted = st.form_submit_button("ANALYSER MON PROFIL 🚀")
+
+# --- LOGIQUE D'ANALYSE ---
+if submitted:
+    if not api_key:
+        st.error("⚠️ Veuillez entrer votre Clé API dans la barre latérale à gauche.")
+    elif not user_name:
+        st.warning("Veuillez entrer votre prénom pour personnaliser l'analyse.")
+    else:
+        with st.spinner("AlpinaAi analyse vos réponses... (Traitement en cours)"):
+            try:
+                # 1. Configurer Gemini
+                genai.configure(api_key=api_key)
+                model = genai.GenerativeModel('gemini-pro')
+                
+                # 2. Préparer le message pour l'IA
+                prompt_content = f"Voici les réponses du candidat nommé {user_name} :\n"
+                for k, v in reponses_user.items():
+                    prompt_content += f"- Question : {questions[k]} / Réponse : {v}\n"
+                
+                full_prompt = SYSTEM_PROMPT + "\n" + prompt_content
+
+                # 3. Envoyer et recevoir
+                response = model.generate_content(full_prompt)
+                
+                # 4. Afficher le résultat
+                st.success("Analyse terminée !")
+                st.markdown(f"## Bilan Flash pour {user_name}")
+                st.markdown(response.text)
+                
+            except Exception as e:
+                st.error(f"Une erreur est survenue : {e}")
