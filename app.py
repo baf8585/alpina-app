@@ -25,7 +25,6 @@ st.markdown("<p class='sub-text'>Découvrez votre profil professionnel et votre 
 st.markdown("---")
 
 # --- GESTION DE LA CLÉ API (VIA SECRETS) ---
-# Le site va chercher la clé tout seul. Plus besoin de la taper.
 try:
     api_key = st.secrets["GOOGLE_API_KEY"]
 except:
@@ -117,7 +116,9 @@ if submitted:
             try:
                 # 1. Configurer Gemini avec la clé secrète
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-pro')
+                
+                # CHANGEMENT ICI : Utilisation du modèle Flash (plus récent)
+                model = genai.GenerativeModel('gemini-1.5-flash')
                 
                 # 2. Préparer le message pour l'IA
                 prompt_content = f"Voici les réponses du candidat nommé {user_name} :\n"
