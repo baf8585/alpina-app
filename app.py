@@ -4,176 +4,197 @@ import datetime
 
 # --- CONFIGURATION DE LA PAGE ---
 st.set_page_config(
-    page_title="AlpinaAi - Bilan & Orientation",
+    page_title="AlpinaAi | Recrutement & IA Suisse",
     page_icon="🏔️",
-    layout="centered"
+    layout="wide"
 )
 
-# --- STYLE VISUEL (CSS PRO & STRICT) ---
+# --- CSS (DESIGN DU SITE) ---
 st.markdown("""
     <style>
-    .main-header {text-align: center; color: #003366; font-family: 'Helvetica Neue', sans-serif;}
-    .sub-text {text-align: center; color: #555; font-size: 1.1em;}
-    .stButton>button {width: 100%; background-color: #B71C1C; color: white; font-weight: bold; padding: 14px; border-radius: 6px; border: none; text-transform: uppercase; letter-spacing: 1px;}
-    .stButton>button:hover {background-color: #8E0000;}
-    .report-box {background-color: #ffffff; padding: 40px; border-radius: 2px; border: 1px solid #ddd; border-top: 6px solid #003366; box-shadow: 0 2px 10px rgba(0,0,0,0.05);}
-    .section-title {color: #003366; font-size: 1.2em; font-weight: bold; margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px;}
+    /* Titres */
+    h1 {color: #003366; font-family: 'Helvetica', sans-serif;}
+    h2, h3 {color: #00509E;}
+    
+    /* Bouton Principal */
+    .stButton>button {
+        background-color: #D32F2F; color: white; border-radius: 5px; 
+        font-weight: bold; border: none; padding: 10px 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .stButton>button:hover {background-color: #B71C1C;}
+    
+    /* Boites d'info */
+    .service-box {
+        background-color: #F8F9FA; padding: 20px; border-radius: 10px;
+        border-left: 5px solid #003366; margin-bottom: 20px;
+    }
     </style>
 """, unsafe_allow_html=True)
-
-# --- EN-TÊTE ---
-st.markdown("<h1 class='main-header'>🏔️ AlpinaAi</h1>", unsafe_allow_html=True)
-st.markdown("<p class='sub-text'>Centre d'Expertise en Orientation & Recrutement - Suisse</p>", unsafe_allow_html=True)
-st.markdown("---")
 
 # --- GESTION CLÉ API ---
 try:
     api_key = st.secrets["GOOGLE_API_KEY"]
 except:
-    st.error("⚠️ Erreur système : Clé API non détectée.")
+    st.error("⚠️ Clé API manquante dans les secrets.")
     st.stop()
 
-# --- SIDEBAR ---
+# --- SIDEBAR (NAVIGATION & SERVICES) ---
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/2910/2910768.png", width=80)
-    st.markdown("### AlpinaAi Switzerland")
-    st.info("Algorithme : **Gemini 2.5 Pro**") # On fait croire au Pro pour le marketing, même si c'est Flash ;)
-    st.write("Nous connectons les hauts potentiels (20-30 ans) avec l'excellence économique suisse.")
-    st.markdown("---")
-    st.write("📍 **Genève / Zurich**")
-    st.write("📧 contact@alpinaai.ch")
+    # GESTION DU LOGO
+    # Le code va chercher 'logo.png' sur GitHub.
+    try:
+        st.image("logo.png", width=220) 
+    except:
+        # Si le logo ne s'affiche pas, on met le texte par sécurité
+        st.title("🏔️ AlpinaAi")
+        st.caption("Image logo.png introuvable")
 
-# --- LE CERVEAU (Prompt V4 - Analyse Étendue) ---
-SYSTEM_PROMPT = """
-Tu es AlpinaAi, Consultant Senior en Stratégie RH pour le marché suisse.
-Analyse les réponses QCM ci-dessous pour un profil Junior/Confirmé (20-30 ans).
-
-Génère un rapport d'expertise structuré (Markdown) :
-
-### 💎 [Titre de Profil Valorisant et Professionnel]
-
-**🧠 1. Analyse Cognitive (Votre mode de réflexion) :**
-[Rédige un paragraphe dense de 4-5 lignes. Analyse comment le candidat traite l'information, gère la complexité et prend des décisions. Utilise un vocabulaire soutenu.]
-
-**🤝 2. Impact Relationnel (Votre dynamique d'équipe) :**
-[Rédige un deuxième paragraphe de 4-5 lignes. Analyse son leadership, sa diplomatie et son intelligence émotionnelle au travail.]
-
-**⚠️ Zone de Vigilance Manageriale :**
-[Un point précis que son futur manager devra surveiller pour qu'il performe au mieux.]
-
-**🇨🇭 Projection Sectorielle (Marché Suisse) :**
-* **[Secteur 1]** : [Justification précise]
-* **[Secteur 2]** : [Justification précise]
-
----
-**🚀 OFFRE EXCLUSIVE ALPINA : VOTRE AGENT DE CARRIÈRE**
-
-[Pitch commercial persuasif de 3-4 lignes.
-Argumentaire : "Ce bilan statique n'est que la première étape. Pour pénétrer le marché caché suisse (70% des offres), activez votre Moteur de Recherche IA Personnalisé Alpina."
-Explique que l'IA va scanner en temps réel les opportunités invisibles sur LinkedIn/Jobup spécifiquement pour SON profil.
-Appel à l'action : "Ne cherchez plus, laissez l'IA chasser pour vous. Activez votre agent ci-dessous."]
-"""
-
-# --- FORMULAIRE DONNÉES PERSONNELLES (PRO) ---
-st.markdown("### 1. Dossier Candidat")
-st.caption("Ces informations sont confidentielles et nécessaires à l'établissement de votre bilan.")
-
-col1, col2 = st.columns(2)
-with col1:
-    prenom = st.text_input("Prénom")
-    date_n = st.date_input("Date de Naissance", min_value=datetime.date(1985, 1, 1), max_value=datetime.date(2005, 12, 31))
-    pays = st.text_input("Pays de Résidence Actuel")
-with col2:
-    nom = st.text_input("Nom")
-    email = st.text_input("Adresse Email Professionnelle")
-    # Petit hack pour forcer le format email visuellement si besoin, mais le champ texte suffit.
-
-st.markdown("### 2. Évaluation Psychométrique")
-
-# --- QUESTIONS ---
-questions = {
-    "Q1_Deadline": "Face à une échéance critique (deadline courte), votre réflexe est :",
-    "Q2_Bureau": "Votre environnement de travail optimal se définit par :",
-    "Q3_Changement": "Réaction face à l'imposition d'un nouveau processus :",
-    "Q4_Reunion": "Votre posture dominante lors des réunions stratégiques :",
-    "Q5_Conflit": "Gestion d'un désaccord majeur avec un pair :",
-    "Q6_Manager": "Votre définition du N+1 (Manager) idéal :",
-    "Q7_Motivation": "Votre levier de motivation principal actuel :",
-    "Q8_Decision": "Prise de décision en situation d'incertitude (données partielles) :",
-    "Q9_Echec": "Perception de l'échec ou de l'erreur professionnelle :",
-    "Q10_Structure": "Typologie d'entreprise visée en priorité :",
-    "Q11_Apero": "Attitude lors des événements informels d'entreprise (Team Building) :",
-    "Q12_Reve": "Objectif de carrière à long terme (Vision 10 ans) :"
-}
-
-options = {
-    "Q1_Deadline": ["Action immédiate (Stimulation par l'urgence).", "Planification séquentielle détaillée.", "Mobilisation collective des ressources.", "Négociation du périmètre/délai."],
-    "Q2_Bureau": ["Foisonnement créatif (organisé).", "Minimalisme structuré.", "Visuel et aide-mémoire (Post-its).", "Espace personnalisé et 'cosy'."],
-    "Q3_Changement": ["Adhésion enthousiaste (Opportunité).", "Scepticisme prudent (Besoin de preuves).", "Analyse ROI (Gain de productivité).", "Recherche de consensus d'équipe."],
-    "Q4_Reunion": ["Synthèse et écoute active.", "Force de proposition (Ideation).", "Challenge et analyse critique.", "Observation et analyse post-réunion."],
-    "Q5_Conflit": ["Argumentation factuelle (Data-driven).", "Médiation et recherche de compromis.", "Affirmation de position (Leadership).", "Test A/B (Pragmatisme)."],
-    "Q6_Manager": ["Délégatif (Autonomie complète).", "Coach (Feedback régulier).", "Visionnaire (Inspirant).", "Protecteur (Bienveillance)."],
-    "Q7_Motivation": ["Rémunération et Performance financière.", "Montée en compétence (Hard Skills).", "Impact RSE / Sens / Mission.", "Responsabilité managériale / Pouvoir."],
-    "Q8_Decision": ["Intuitive (Expérientielle).", "Analytique (Refus du risque non calculé).", "Consultative (Avis d'experts).", "Scénarisation (Risk Management)."],
-    "Q9_Echec": ["À éviter absolument (Risque de réputation).", "Source d'apprentissage itératif.", "Inhérent à l'innovation.", "Signe d'un défaut de préparation."],
-    "Q10_Structure": ["Grande Entreprise / Multinationale.", "PME / ETI Suisse (Stabilité).", "Start-up / Scale-up (Agilité).", "Indépendant / Consulting."],
-    "Q11_Apero": ["Networking actif (Opportunité réseau).", "Présence protocolaire limitée.", "Priorité aux dossiers en cours.", "Organisateur / Fédérateur."],
-    "Q12_Reve": ["Expertise technique reconnue (Top-Tier).", "Entrepreneuriat / C-Level.", "Équilibre Vie Pro/Perso sanctuarisé.", "Contribution sociétale majeure."]
-}
-
-reponses_user = {}
-
-with st.form("quiz_form"):
-    for key, question_text in questions.items():
-        st.markdown(f"**{question_text}**") # Markdown pour un rendu plus propre
-        reponses_user[key] = st.radio("Sélectionnez une option :", options[key], label_visibility="collapsed", key=key)
-        st.markdown("<hr style='margin: 5px 0; opacity: 0.3;'>", unsafe_allow_html=True) # Séparateur plus fin
+    st.caption("Suisse | Innovation | Carrière")
     
-    st.markdown("<br>", unsafe_allow_html=True)
-    submitted = st.form_submit_button("GÉNÉRER MON BILAN DE COMPÉTENCES 🚀")
+    st.markdown("---")
+    st.header("📌 Nos Solutions")
+    
+    with st.expander("🔍 Audit de Profil (Gratuit)", expanded=True):
+        st.write("Le bilan IA flash pour connaître vos forces en 5 min.")
+    
+    with st.expander("🚀 Pack 'Essential'"):
+        st.write("**Pour démarrer fort.**")
+        st.write("- Revue CV par Expert + IA")
+        st.write("- Optimisation LinkedIn")
+        st.write("- Accès Base Talents")
+        st.caption("Dès 150 CHF")
+        
+    with st.expander("💎 Pack 'Elite Career'"):
+        st.write("**L'accompagnement total.**")
+        st.write("- Coaching Interview 1-to-1")
+        st.write("- Chasseur de tête dédié")
+        st.write("- Négociation salariale")
+        st.caption("Sur devis")
 
-# --- TRAITEMENT ---
+    st.markdown("---")
+    st.info("📞 **Contact Entreprises**\n\nVous cherchez des talents ?\npartner@alpinaai.ch")
+
+# --- CORPS DU SITE (MAIN) ---
+
+# 1. HERO SECTION (L'ACCUEIL)
+col_logo, col_text = st.columns([1, 3])
+with col_text:
+    st.title("Votre Potentiel. Toutes les Opportunités Suisses.")
+    st.markdown("### Ne cherchez plus un emploi. Laissez l'IA trouver votre carrière.")
+    st.markdown("""
+    AlpinaAi n'est pas une agence classique. Nous utilisons **l'Intelligence Artificielle de pointe** pour décoder vos compétences et vous connecter instantanément aux entreprises suisses qui vous cherchent.
+    
+    ✅ **100% Gratuit pour les candidats** ✅ **Analyse psychométrique incluse** ✅ **Ouvert à tous les secteurs (Banque, Tech, Industrie, Services)**
+    """)
+
+st.markdown("---")
+
+# 2. LE TEST (L'APPEL À L'ACTION)
+st.subheader("📝 Commencez par votre Bilan de Compétences Flash")
+st.write("Répondez honnêtement. Notre IA analyse votre profil en temps réel.")
+
+# --- FORMULAIRE ET LOGIQUE ---
+
+with st.container():
+    col_form1, col_form2 = st.columns(2)
+    with col_form1:
+        prenom = st.text_input("Prénom")
+        pays = st.text_input("Pays")
+    with col_form2:
+        nom = st.text_input("Nom")
+        email = st.text_input("Email Pro")
+
+    # --- QUESTIONS QCM ---
+    questions = {
+        "Q1_Deadline": "Une deadline impossible tombe. Réaction ?",
+        "Q2_Bureau": "Votre espace idéal ?",
+        "Q3_Changement": "On change tous les processus. Avis ?",
+        "Q4_Reunion": "Votre rôle en réunion ?",
+        "Q5_Conflit": "Désaccord majeur avec un collègue ?",
+        "Q6_Manager": "Le manager parfait est...",
+        "Q7_Motivation": "Qu'est-ce qui vous motive le plus ?",
+        "Q8_Decision": "Décider sans tout savoir ?",
+        "Q9_Echec": "L'échec c'est...",
+        "Q10_Structure": "Environnement préféré ?",
+        "Q11_Apero": "L'afterwork commence...",
+        "Q12_Reve": "Ambition ultime ?"
+    }
+
+    options = {
+        "Q1_Deadline": ["Action immédiate.", "Planification détaillée.", "Mobilisation équipe.", "Négociation."],
+        "Q2_Bureau": ["Créatif.", "Minimaliste.", "Organisé visuel.", "Cosy personnel."],
+        "Q3_Changement": ["Enthousiaste.", "Sceptique.", "Analytique.", "Consensuel."],
+        "Q4_Reunion": ["Synthèse.", "Proposition.", "Critique.", "Observation."],
+        "Q5_Conflit": ["Logique/Faits.", "Compromis.", "Fermeté.", "Test A/B."],
+        "Q6_Manager": ["Délégatif.", "Coach.", "Visionnaire.", "Protecteur."],
+        "Q7_Motivation": ["Argent.", "Compétence.", "Sens/Mission.", "Pouvoir."],
+        "Q8_Decision": ["Intuition.", "Attente données.", "Consultation.", "Scénario pire cas."],
+        "Q9_Echec": ["Honte.", "Apprentissage.", "Inévitable.", "Erreur prépa."],
+        "Q10_Structure": ["Multinationale.", "PME Suisse.", "Start-up.", "Indépendant."],
+        "Q11_Apero": ["Réseautage.", "Poli mais bref.", "Travail d'abord.", "Organisateur."],
+        "Q12_Reve": ["Expertise.", "CEO.", "Équilibre.", "Impact sociétal."]
+    }
+
+    reponses_user = {}
+    
+    with st.form("quiz_form"):
+        # Affichage en grille
+        cols = st.columns(2)
+        i = 0
+        for key, text in questions.items():
+            with cols[i % 2]:
+                st.write(f"**{text}**")
+                reponses_user[key] = st.radio("Choix", options[key], label_visibility="collapsed", key=key)
+                st.write("")
+            i += 1
+        
+        st.markdown("---")
+        submitted = st.form_submit_button("🚀 GÉNÉRER MON PROFIL IA")
+
+# --- TRAITEMENT IA ---
 if submitted:
-    # Vérification stricte
-    if not prenom or not nom or not pays:
-        st.error("⚠️ Dossier incomplet : Veuillez renseigner Nom, Prénom et Pays.")
-    elif not email or "@" not in email:
-        st.error("⚠️ Format invalide : Une adresse email professionnelle est requise.")
+    if not prenom or not email:
+        st.error("Merci de remplir votre Prénom et Email pour recevoir l'analyse.")
     else:
-        with st.spinner("🔄 Traitement des données psychométriques en cours..."):
+        with st.spinner("🤖 AlpinaAi analyse vos réponses..."):
             try:
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel('gemini-2.5-flash')
                 
-                # Contextualisation pour l'IA
-                age_approx = datetime.date.today().year - date_n.year
-                user_info = f"Candidat: {prenom} {nom}, Âge: {age_approx} ans, Pays: {pays}"
+                user_info = f"Candidat: {prenom} {nom}, Pays: {pays}"
+                prompt_content = f"{user_info}\nRéponses QCM :\n" + "\n".join([f"{k}: {v}" for k,v in reponses_user.items()])
                 
-                prompt_content = f"{user_info}\nRéponses au test :\n"
-                for k, v in reponses_user.items():
-                    prompt_content += f"- {questions[k]} -> Choix : {v}\n"
-                
-                full_prompt = SYSTEM_PROMPT + "\n" + prompt_content
+                # Prompt système
+                full_prompt = """
+                Tu es AlpinaAi, expert carrière suisse. Analyse ce profil junior/confirmé.
+                Structure ta réponse en Markdown :
+                ### 💎 [Titre Profil]
+                **🧠 Analyse Cognitive :** [Texte riche]
+                **🤝 Impact Relationnel :** [Texte riche]
+                **⚠️ Vigilance :** [Texte]
+                **🇨🇭 Potentiel Suisse :** [3 secteurs justifiés]
+                ---
+                **🚀 OFFRE SPECIALE :** Pitch commercial court pour activer le Moteur de Recherche IA Personnalisé.
+                """ + "\n" + prompt_content
 
                 response = model.generate_content(full_prompt)
                 
-                # Affichage Résultat
                 st.balloons()
-                st.success("Analyse générée avec succès.")
+                st.success("Analyse terminée.")
                 
-                st.markdown(f"<div class='report-box'>", unsafe_allow_html=True)
-                st.markdown(f"## 📄 Bilan de Potentiel : {prenom} {nom}")
-                st.caption(f"Date du rapport : {datetime.date.today().strftime('%d/%m/%Y')}")
+                # Affichage propre du rapport
+                st.markdown("""<div style="background-color: #fff; padding: 30px; border-radius: 10px; border-top: 5px solid #003366; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">""", unsafe_allow_html=True)
                 st.markdown(response.text)
-                
-                # Call to Action Final
-                st.markdown("---")
-                col_cta1, col_cta2 = st.columns([3, 1])
-                with col_cta1:
-                    st.markdown("**👉 Vous souhaitez activer votre Moteur de Recherche IA ?**")
-                with col_cta2:
-                    st.button("ACTIVER MON AGENT", type="primary") # Bouton visuel seulement pour l'instant
                 st.markdown("</div>", unsafe_allow_html=True)
                 
             except Exception as e:
-                st.error(f"Erreur serveur : {e}")
+                st.error(f"Erreur : {e}")
+
+# --- PIED DE PAGE ---
+st.markdown("---")
+st.markdown("""
+<div style='text-align: center; color: #888;'>
+    <small>© 2025 AlpinaAi Switzerland. Tous droits réservés. | <a href='#'>Mentions Légales</a></small>
+</div>
+""", unsafe_allow_html=True)
