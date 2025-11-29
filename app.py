@@ -2,168 +2,179 @@ import streamlit as st
 import google.generativeai as genai
 import datetime
 
-# --- CONFIGURATION MOBILE FIRST ---
+# --- CONFIGURATION ---
 st.set_page_config(
     page_title="AlpinaAi",
     page_icon="🏔️",
     layout="centered"
 )
 
-# --- CSS (DESIGN PASTEL & CONTRASTE FORT) ---
+# --- CSS PREMIUM (LUXE & ÉPURÉ) ---
 st.markdown("""
     <style>
-    /* 1. LE FOND GLOBAL (Pastel agréable) */
+    /* 1. FOND GLOBAL & TYPO */
     .stApp {
-        background-color: #F4F6F9; /* Gris-Bleu très pâle, reposant */
+        background-color: #F8F9FA; /* Gris-blanc très lumineux, plus premium */
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
+    h1, h2, h3 { color: #003366 !important; font-weight: 700 !important; }
+    p, div, label, span { color: #2C3E50 !important; } /* Gris anthracite profond */
+
+    /* 2. HEADER & CARTES SERVICES (Nouveau design !) */
+    .hero-title { text-align: center; margin-bottom: 10px; }
+    .hero-subtitle { text-align: center; color: #666 !important; font-size: 1.1rem; margin-bottom: 30px; }
     
-    /* 2. LE TEXTE (Force le noir/gris foncé partout) */
-    h1, h2, h3, h4, h5, h6 {
-        color: #003366 !important; /* Bleu Alpina pour les titres */
+    /* Le conteneur des 3 cartes */
+    .services-container {
+        display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-bottom: 30px;
     }
-    p, div, label, span {
-        color: #1F2937 !important; /* Gris foncé pour le texte normal */
+    /* Le design d'une carte individuelle */
+    .service-card {
+        background: white; padding: 20px; border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04); border: 1px solid #EAECEF;
+        flex: 1; min-width: 200px; text-align: center;
+        transition: transform 0.2s;
     }
-    
-    /* 3. LES CHAMPS DE SAISIE (Input) - Pour qu'on voie ce qu'on écrit */
+    .service-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+    .card-icon { font-size: 24px; margin-bottom: 10px; }
+    .card-title { color: #003366; font-weight: bold; margin-bottom: 5px; }
+    .card-price { color: #D32F2F; font-weight: bold; font-size: 0.9em; }
+    .card-contact { font-size: 0.8em; color: #888; margin-top: 10px; }
+
+    /* 3. CHAMPS DE SAISIE (Plus modernes) */
     .stTextInput>div>div>input {
-        background-color: #FFFFFF !important; /* Fond blanc pur */
-        color: #000000 !important; /* Texte noir */
-        border: 1px solid #CBD5E1; /* Bordure grise fine */
-        border-radius: 8px;
+        background-color: #FFFFFF !important;
+        border: 1px solid #D1D5DB; border-radius: 8px; padding: 10px;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
     }
-    
-    /* 4. LES RADIOS (Choix QCM) - Pour qu'ils soient lisibles */
-    div[role="radiogroup"] {
-        background-color: #FFFFFF; /* Fond blanc sous les questions */
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        border: 1px solid #E5E7EB;
-    }
-    
-    /* 5. LE BOUTON (Gros et Visible) */
+    .stTextInput>div>div>input:focus { border-color: #003366; }
+
+    /* 4. QCM ÉPURÉ (Fini les boîtes blanches moches) */
+    /* On nettoie le style par défaut pour que ça respire */
+    .stRadio > label { font-weight: 600; font-size: 1.05em; margin-bottom: 10px; display: block; }
+    div[role="radiogroup"] { background: transparent; padding: 5px; }
+    /* Ligne de séparation discrète entre les questions */
+    hr { margin: 25px 0; border-color: #EAECEF; opacity: 0.6; }
+
+    /* 5. BOUTON D'ACTION (Premium) */
     .stButton>button {
-        width: 100%;
-        background-color: #D32F2F; 
-        color: white !important; /* Texte blanc forcé */
-        font-size: 18px;
-        font-weight: bold; 
-        padding: 15px 0px; 
-        border-radius: 12px;
-        border: none;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        margin-top: 20px;
+        width: 100%; background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
+        color: white !important; font-size: 18px; font-weight: bold;
+        padding: 16px 0px; border-radius: 12px; border: none;
+        box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3); margin-top: 25px;
+        text-transform: uppercase; letter-spacing: 1px;
     }
-    .stButton>button:hover {background-color: #B71C1C;}
-    
-    /* 6. CACHER LES ÉLÉMENTS STREAMLIT INUTILES */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    
-    /* 7. Centrer logo et titres */
-    .block-container {
-        padding-top: 2rem;
-        padding-bottom: 5rem;
-    }
+    .stButton>button:hover { box-shadow: 0 6px 15px rgba(211, 47, 47, 0.4); transform: scale(1.01); }
+
+    /* HIDE STREAMLIT UI */
+    #MainMenu, footer, header {visibility: hidden;}
+    .block-container { padding-top: 1rem; padding-bottom: 5rem; max-width: 800px; }
     </style>
 """, unsafe_allow_html=True)
 
 # --- GESTION CLÉ API ---
-try:
-    api_key = st.secrets["GOOGLE_API_KEY"]
-except:
-    st.error("⚠️ Clé API manquante.")
-    st.stop()
+try: api_key = st.secrets["GOOGLE_API_KEY"]
+except: st.stop()
 
-# --- HEADER ---
+# ================= HEADER PREMIUM =================
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
-    try:
-        st.image("logo.png", use_container_width=True) 
-    except:
-        st.markdown("<h1 style='text-align: center;'>🏔️ AlpinaAi</h1>", unsafe_allow_html=True)
+    try: st.image("logo.png", use_container_width=True)
+    except: st.markdown("<h1 style='text-align: center;'>🏔️ AlpinaAi</h1>", unsafe_allow_html=True)
 
-st.markdown("<h3 style='text-align: center; margin-bottom: 5px;'>Votre Potentiel. Toutes les Opportunités Suisses.</h3>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #555 !important; font-size: 14px;'>L'IA qui scanne le marché caché pour vous.</p>", unsafe_allow_html=True)
+st.markdown("<h3 class='hero-title'>Votre Potentiel. Toutes les Opportunités Suisses.</h3>", unsafe_allow_html=True)
+st.markdown("<p class='hero-subtitle'>L'Intelligence Artificielle qui scanne le marché caché pour vous.</p>", unsafe_allow_html=True)
 
-# --- SERVICES (Expanders stylés) ---
-# On met un fond blanc pour que ça ressorte sur le pastel
-with st.expander("📌 Voir nos Solutions & Tarifs"):
-    st.markdown("""
-    <div style='background-color: white; padding: 10px; border-radius: 5px;'>
-    ✅ <b>Audit Flash (Gratuit)</b> : Ce que vous faites maintenant.<br>
-    🚀 <b>Pack Essential (150 CHF)</b> : CV + LinkedIn + Base de Talents.<br>
-    💎 <b>Pack Elite (Sur devis)</b> : Coaching + Chasseur de tête dédié.<br>
-    <br>
-    <small>📧 partner@alpinaai.ch</small>
+# --- NOUVELLE SECTION SERVICES (CARTES HTML) ---
+st.markdown("""
+<div class="services-container">
+    <div class="service-card">
+        <div class="card-icon">✅</div>
+        <div class="card-title">Audit Flash</div>
+        <div>Bilan de compétences IA instantané.</div>
+        <div class="card-price">Gratuit (Ci-dessous)</div>
     </div>
-    """, unsafe_allow_html=True)
+    <div class="service-card">
+        <div class="card-icon">🚀</div>
+        <div class="card-title">Pack Essential</div>
+        <div>CV + LinkedIn + Base de Talents.</div>
+        <div class="card-price">Dès 150 CHF</div>
+    </div>
+    <div class="service-card">
+        <div class="card-icon">💎</div>
+        <div class="card-title">Pack Elite</div>
+        <div>Coaching + Chasseur dédié.</div>
+        <div class="card-price">Sur Devis</div>
+    </div>
+</div>
+<div style="text-align: center; font-size: 0.9em; color: #666; margin-bottom: 40px;">
+    Entreprises : <a href="mailto:partner@alpinaai.ch" style="color: #003366; font-weight: bold; text-decoration: none;">partner@alpinaai.ch</a>
+</div>
+""", unsafe_allow_html=True)
 
-st.markdown("---")
 
-# --- LE TEST ---
-st.markdown("### 📝 Bilan Flash (Gratuit)")
-st.write("Prenez 2 minutes. Répondez spontanément.")
+# ================= LE TEST (FORMULAIRE) =================
+st.markdown("### 📝 Commencez votre Bilan Flash (Gratuit)")
+st.write("Prenez 2 minutes. Répondez spontanément pour une analyse précise.")
+st.markdown("<br>", unsafe_allow_html=True)
 
 with st.form("quiz_form"):
-    # Champs persos
+    # Champs persos (Design amélioré par CSS)
     prenom = st.text_input("Prénom")
     nom = st.text_input("Nom")
-    email = st.text_input("Email Pro")
-    pays = st.text_input("Pays")
+    email = st.text_input("Email Professionnel")
+    pays = st.text_input("Pays de résidence actuel")
     
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<br><hr><br>", unsafe_allow_html=True)
     
-    # Questions
+    # Questions (Design épuré sans boites)
     questions = {
         "Q1_Deadline": "Une deadline impossible tombe. Réaction ?",
-        "Q2_Bureau": "Votre espace idéal ?",
-        "Q3_Changement": "On change tous les processus. Avis ?",
-        "Q4_Reunion": "Votre rôle en réunion ?",
+        "Q2_Bureau": "Votre espace de travail idéal ?",
+        "Q3_Changement": "On change tous les processus. Votre avis ?",
+        "Q4_Reunion": "Votre rôle dominant en réunion ?",
         "Q5_Conflit": "Désaccord majeur avec un collègue ?",
         "Q6_Manager": "Le manager parfait est...",
-        "Q7_Motivation": "Qu'est-ce qui vous motive le plus ?",
-        "Q8_Decision": "Décider sans tout savoir ?",
-        "Q9_Echec": "L'échec c'est...",
-        "Q10_Structure": "Environnement préféré ?",
+        "Q7_Motivation": "Votre moteur principal actuel ?",
+        "Q8_Decision": "Décider sans avoir toutes les infos ?",
+        "Q9_Echec": "Votre définition de l'échec ?",
+        "Q10_Structure": "Environnement d'entreprise préféré ?",
         "Q11_Apero": "L'afterwork commence...",
-        "Q12_Reve": "Ambition ultime ?"
+        "Q12_Reve": "Ambition ultime de carrière ?"
     }
 
     options = {
-        "Q1_Deadline": ["Action immédiate.", "Planification détaillée.", "Mobilisation équipe.", "Négociation."],
-        "Q2_Bureau": ["Créatif.", "Minimaliste.", "Organisé visuel.", "Cosy personnel."],
-        "Q3_Changement": ["Enthousiaste.", "Sceptique.", "Analytique.", "Consensuel."],
-        "Q4_Reunion": ["Synthèse.", "Proposition.", "Critique.", "Observation."],
-        "Q5_Conflit": ["Logique/Faits.", "Compromis.", "Fermeté.", "Test A/B."],
-        "Q6_Manager": ["Délégatif.", "Coach.", "Visionnaire.", "Protecteur."],
-        "Q7_Motivation": ["Argent.", "Compétence.", "Sens/Mission.", "Pouvoir."],
-        "Q8_Decision": ["Intuition.", "Attente données.", "Consultation.", "Scénario pire cas."],
-        "Q9_Echec": ["Honte.", "Apprentissage.", "Inévitable.", "Erreur prépa."],
-        "Q10_Structure": ["Multinationale.", "PME Suisse.", "Start-up.", "Indépendant."],
-        "Q11_Apero": ["Réseautage.", "Poli mais bref.", "Travail d'abord.", "Organisateur."],
-        "Q12_Reve": ["Expertise.", "CEO.", "Équilibre.", "Impact sociétal."]
+        "Q1_Deadline": ["Action immédiate (Positif).", "Planification détaillée d'abord.", "Mobilisation de l'équipe.", "Négociation du délai/périmètre."],
+        "Q2_Bureau": ["Créatif et foisonnant.", "Minimaliste et ultra-rangé.", "Organisé avec supports visuels.", "Cosy et personnalisé."],
+        "Q3_Changement": ["Enthousiaste (Opportunité).", "Sceptique (Besoin de preuves).", "Analytique (Calcul du ROI).", "Consensuel (Suivre l'équipe)."],
+        "Q4_Reunion": ["Synthèse et écoute.", "Force de proposition.", "Challenge et critique.", "Observation et analyse."],
+        "Q5_Conflit": ["Basé sur la logique/faits.", "Recherche du compromis.", "Fermeté sur ma position.", "Test A/B (Pragmatisme)."],
+        "Q6_Manager": ["Délégatif (Laissez-moi faire).", "Coach (Feedback constant).", "Visionnaire (Inspirant).", "Protecteur (Bienveillant)."],
+        "Q7_Motivation": ["Rémunération / Argent.", "Montée en compétence technique.", "Sens / Mission sociétale.", "Pouvoir / Management."],
+        "Q8_Decision": ["Je tranche à l'intuition.", "J'attends plus de données.", "Je consulte des experts.", "Je fais un scénario 'Pire Cas'."],
+        "Q9_Echec": ["Une honte à éviter.", "Une opportunité d'apprentissage.", "Inévitable pour innover.", "Un défaut de préparation."],
+        "Q10_Structure": ["Grande Multinationale.", "PME Suisse stable.", "Start-up agile.", "Indépendant / Freelance."],
+        "Q11_Apero": ["Réseautage actif.", "Poli mais départ rapide.", "Priorité au travail d'abord.", "C'est moi l'organisateur !"],
+        "Q12_Reve": ["Expertise technique reconnue.", "CEO / Entrepreneur.", "Équilibre Vie Pro/Perso parfait.", "Impact sociétal majeur."]
     }
 
     reponses_user = {}
     
+    # Boucle d'affichage des questions épurées
     for key, text in questions.items():
         st.write(f"**{text}**")
         reponses_user[key] = st.radio("Choix", options[key], label_visibility="collapsed", key=key)
-        st.write("") 
+        st.markdown("<hr>", unsafe_allow_html=True) # Ligne fine de séparation
         
-    st.markdown("---")
-    submitted = st.form_submit_button("🚀 ANALYSER MON PROFIL")
+    st.markdown("<br>", unsafe_allow_html=True)
+    submitted = st.form_submit_button("GÉNÉRER MON PROFIL IA 🚀")
 
 # --- TRAITEMENT IA ---
 if submitted:
     if not prenom or not email:
-        st.error("⚠️ Prénom et Email obligatoires.")
+        st.warning("⚠️ Veuillez remplir au minimum votre Prénom et votre Email pour recevoir l'analyse.")
     else:
-        with st.spinner("🧠 AlpinaAi réfléchit..."):
+        with st.spinner("🧠 Connexion aux neurones d'AlpinaAi... Analyse en cours..."):
             try:
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel('gemini-2.5-flash')
@@ -172,28 +183,25 @@ if submitted:
                 prompt_content = f"{user_info}\nRéponses QCM :\n" + "\n".join([f"{k}: {v}" for k,v in reponses_user.items()])
                 
                 full_prompt = """
-                Tu es AlpinaAi. Analyse ce profil.
-                Format Markdown :
-                ### 💎 [Titre Profil]
-                **🧠 Analyse :** [Court et percutant]
-                **🤝 Relationnel :** [Court et percutant]
-                **⚠️ Vigilance :** [1 phrase]
-                **🇨🇭 Secteurs Suisses :** [Liste à puces]
+                Tu es AlpinaAi, consultant expert carrière suisse. Analyse ce profil avec précision et bienveillance.
+                Format Markdown strict :
+                ### 💎 [Titre de Profil Valorisant]
+                **🧠 Analyse Cognitive & Soft-Skills :** [Paragraphe dense et expert]
+                **🤝 Dynamique Relationnelle :** [Paragraphe dense et expert]
+                **⚠️ Point de Vigilance :** [Une phrase constructive]
+                **🇨🇭 Potentiel Marché Suisse :** [Liste à puces de 3 secteurs/métiers justifiés]
                 ---
-                **🚀 OFFRE :** Pitch court pour le Moteur de Recherche IA.
+                **🚀 OFFRE EXCLUSIVE :** Pitch commercial court et percutant (3 lignes max) incitant à activer le Moteur de Recherche IA Personnalisé Alpina pour accéder au marché caché.
                 """ + "\n" + prompt_content
 
                 response = model.generate_content(full_prompt)
                 
                 st.balloons()
+                st.success("Analyse terminée avec succès.")
                 
-                # Boite de résultat propre (Fond blanc sur fond pastel)
-                st.markdown("""<div style="background-color: #fff; padding: 25px; border-radius: 10px; border: 1px solid #ddd; border-top: 5px solid #003366; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">""", unsafe_allow_html=True)
-                st.markdown(response.text)
-                st.markdown("</div>", unsafe_allow_html=True)
-                
-            except Exception as e:
-                st.error(f"Erreur : {e}")
-
-# --- FOOTER ---
-st.markdown("<br><br><p style='text-align: center; color: #999 !important; font-size: 12px;'>© 2025 AlpinaAi Switzerland</p>", unsafe_allow_html=True)
+                # Boite de résultat Premium
+                st.markdown("""<div style="background-color: #fff; padding: 40px; border-radius: 12px; border: 1px solid #EAECEF; border-top: 6px solid #003366; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">""", unsafe_allow_html=True)
+                st.markdown(f"## Bilan de Potentiel : {prenom}")
+                st.caption(f"Généré par l'IA Alpina le {datetime.date.today().strftime('%d/%m/%Y')}")
+                st.markdown("---")
+                st.markdown(
