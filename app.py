@@ -2,33 +2,55 @@ import streamlit as st
 import google.generativeai as genai
 import datetime
 
-# --- CONFIGURATION DE LA PAGE ---
+# --- CONFIGURATION MOBILE FIRST ---
 st.set_page_config(
-    page_title="AlpinaAi | Recrutement & IA Suisse",
+    page_title="AlpinaAi",
     page_icon="🏔️",
-    layout="wide"
+    layout="centered" # On passe en CENTRÉ pour l'effet "App Mobile"
 )
 
-# --- CSS (DESIGN DU SITE) ---
+# --- CSS (DESIGN MOBILE & PROPRE) ---
 st.markdown("""
     <style>
-    /* Titres */
-    h1 {color: #003366; font-family: 'Helvetica', sans-serif;}
-    h2, h3 {color: #00509E;}
+    /* Force le fond blanc et texte sombre si le config.toml n'est pas fait */
+    .stApp {
+        background-color: white;
+        color: #003366;
+    }
     
-    /* Bouton Principal */
+    /* Centrer le Logo et Titres */
+    .css-1kyxreq, .css-1rs6os {
+        justify-content: center;
+        text-align: center;
+    }
+    
+    /* Gros Bouton "Tapable" pour mobile */
     .stButton>button {
-        background-color: #D32F2F; color: white; border-radius: 5px; 
-        font-weight: bold; border: none; padding: 10px 20px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        width: 100%;
+        background-color: #D32F2F; 
+        color: white; 
+        font-size: 18px;
+        font-weight: bold; 
+        padding: 15px 0px; 
+        border-radius: 12px; /* Bords arrondis comme une app */
+        border: none;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-top: 20px;
     }
     .stButton>button:hover {background-color: #B71C1C;}
     
-    /* Boites d'info */
-    .service-box {
-        background-color: #F8F9FA; padding: 20px; border-radius: 10px;
-        border-left: 5px solid #003366; margin-bottom: 20px;
+    /* Style des inputs pour être lisibles sur mobile */
+    .stTextInput>div>div>input {
+        background-color: #F8F9FA;
+        border-radius: 8px;
+        border: 1px solid #ddd;
     }
+    
+    /* Cacher le menu hamburger par défaut de Streamlit pour faire plus "App" */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;} /* Cache la barre colorée en haut */
+    
     </style>
 """, unsafe_allow_html=True)
 
@@ -36,76 +58,49 @@ st.markdown("""
 try:
     api_key = st.secrets["GOOGLE_API_KEY"]
 except:
-    st.error("⚠️ Clé API manquante dans les secrets.")
+    st.error("⚠️ Clé API manquante.")
     st.stop()
 
-# --- SIDEBAR (NAVIGATION & SERVICES) ---
-with st.sidebar:
-    # GESTION DU LOGO
-    # Le code va chercher 'logo.png' sur GitHub.
+# --- HEADER (LOGO & ACCROCHE) ---
+# On utilise des colonnes pour centrer l'image parfaitement
+col1, col2, col3 = st.columns([1, 2, 1])
+
+with col2:
     try:
-        st.image("logo.png", width=220) 
+        # Affiche le logo en grand au centre
+        st.image("logo.png", use_container_width=True) 
     except:
-        # Si le logo ne s'affiche pas, on met le texte par sécurité
-        st.title("🏔️ AlpinaAi")
-        st.caption("Image logo.png introuvable")
+        st.markdown("<h1 style='text-align: center;'>🏔️ AlpinaAi</h1>", unsafe_allow_html=True)
 
-    st.caption("Suisse | Innovation | Carrière")
-    
-    st.markdown("---")
-    st.header("📌 Nos Solutions")
-    
-    with st.expander("🔍 Audit de Profil (Gratuit)", expanded=True):
-        st.write("Le bilan IA flash pour connaître vos forces en 5 min.")
-    
-    with st.expander("🚀 Pack 'Essential'"):
-        st.write("**Pour démarrer fort.**")
-        st.write("- Revue CV par Expert + IA")
-        st.write("- Optimisation LinkedIn")
-        st.write("- Accès Base Talents")
-        st.caption("Dès 150 CHF")
-        
-    with st.expander("💎 Pack 'Elite Career'"):
-        st.write("**L'accompagnement total.**")
-        st.write("- Coaching Interview 1-to-1")
-        st.write("- Chasseur de tête dédié")
-        st.write("- Négociation salariale")
-        st.caption("Sur devis")
+st.markdown("<h3 style='text-align: center; color: #003366;'>Votre Potentiel. Toutes les Opportunités Suisses.</h3>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #666;'>L'IA qui scanne le marché caché pour vous.</p>", unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.info("📞 **Contact Entreprises**\n\nVous cherchez des talents ?\npartner@alpinaai.ch")
-
-# --- CORPS DU SITE (MAIN) ---
-
-# 1. HERO SECTION (L'ACCUEIL)
-col_logo, col_text = st.columns([1, 3])
-with col_text:
-    st.title("Votre Potentiel. Toutes les Opportunités Suisses.")
-    st.markdown("### Ne cherchez plus un emploi. Laissez l'IA trouver votre carrière.")
-    st.markdown("""
-    AlpinaAi n'est pas une agence classique. Nous utilisons **l'Intelligence Artificielle de pointe** pour décoder vos compétences et vous connecter instantanément aux entreprises suisses qui vous cherchent.
-    
-    ✅ **100% Gratuit pour les candidats** ✅ **Analyse psychométrique incluse** ✅ **Ouvert à tous les secteurs (Banque, Tech, Industrie, Services)**
-    """)
+# --- LES SERVICES (SOUS FORME D'ACCORDÉON DISCRET) ---
+# On les met ici pour rassurer, mais fermés pour ne pas gêner le scroll vers le test
+with st.expander("📌 Voir nos Solutions & Tarifs"):
+    st.write("✅ **Audit Flash (Gratuit)** : Ce que vous faites maintenant.")
+    st.write("🚀 **Pack Essential (150 CHF)** : CV + LinkedIn + Base de Talents.")
+    st.write("💎 **Pack Elite (Sur devis)** : Coaching + Chasseur de tête dédié.")
+    st.info("Pour les entreprises : partner@alpinaai.ch")
 
 st.markdown("---")
 
-# 2. LE TEST (L'APPEL À L'ACTION)
-st.subheader("📝 Commencez par votre Bilan de Compétences Flash")
-st.write("Répondez honnêtement. Notre IA analyse votre profil en temps réel.")
+# --- LE TEST (CORPS PRINCIPAL) ---
+st.markdown("### 📝 Bilan Flash (Gratuit)")
+st.caption("Prenez 2 minutes. Répondez spontanément.")
 
-# --- FORMULAIRE ET LOGIQUE ---
-
-with st.container():
-    col_form1, col_form2 = st.columns(2)
-    with col_form1:
-        prenom = st.text_input("Prénom")
-        pays = st.text_input("Pays")
-    with col_form2:
-        nom = st.text_input("Nom")
-        email = st.text_input("Email Pro")
-
-    # --- QUESTIONS QCM ---
+with st.form("quiz_form"):
+    # Champs persos
+    prenom = st.text_input("Prénom")
+    nom = st.text_input("Nom")
+    email = st.text_input("Email Pro")
+    pays = st.text_input("Pays")
+    
+    st.markdown("---")
+    
+    # Questions (Format vertical pour mobile)
+    # Sur mobile, on évite les colonnes pour les questions, on empile tout.
+    
     questions = {
         "Q1_Deadline": "Une deadline impossible tombe. Réaction ?",
         "Q2_Bureau": "Votre espace idéal ?",
@@ -138,26 +133,20 @@ with st.container():
 
     reponses_user = {}
     
-    with st.form("quiz_form"):
-        # Affichage en grille
-        cols = st.columns(2)
-        i = 0
-        for key, text in questions.items():
-            with cols[i % 2]:
-                st.write(f"**{text}**")
-                reponses_user[key] = st.radio("Choix", options[key], label_visibility="collapsed", key=key)
-                st.write("")
-            i += 1
+    for key, text in questions.items():
+        st.write(f"**{text}**")
+        reponses_user[key] = st.radio("Choix", options[key], label_visibility="collapsed", key=key)
+        st.write("") # Petit espace
         
-        st.markdown("---")
-        submitted = st.form_submit_button("🚀 GÉNÉRER MON PROFIL IA")
+    st.markdown("---")
+    submitted = st.form_submit_button("🚀 ANALYSER MON PROFIL")
 
 # --- TRAITEMENT IA ---
 if submitted:
     if not prenom or not email:
-        st.error("Merci de remplir votre Prénom et Email pour recevoir l'analyse.")
+        st.error("⚠️ Prénom et Email obligatoires.")
     else:
-        with st.spinner("🤖 AlpinaAi analyse vos réponses..."):
+        with st.spinner("🧠 AlpinaAi réfléchit..."):
             try:
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel('gemini-2.5-flash')
@@ -165,36 +154,29 @@ if submitted:
                 user_info = f"Candidat: {prenom} {nom}, Pays: {pays}"
                 prompt_content = f"{user_info}\nRéponses QCM :\n" + "\n".join([f"{k}: {v}" for k,v in reponses_user.items()])
                 
-                # Prompt système
                 full_prompt = """
-                Tu es AlpinaAi, expert carrière suisse. Analyse ce profil junior/confirmé.
-                Structure ta réponse en Markdown :
+                Tu es AlpinaAi. Analyse ce profil.
+                Format Markdown :
                 ### 💎 [Titre Profil]
-                **🧠 Analyse Cognitive :** [Texte riche]
-                **🤝 Impact Relationnel :** [Texte riche]
-                **⚠️ Vigilance :** [Texte]
-                **🇨🇭 Potentiel Suisse :** [3 secteurs justifiés]
+                **🧠 Analyse :** [Court et percutant]
+                **🤝 Relationnel :** [Court et percutant]
+                **⚠️ Vigilance :** [1 phrase]
+                **🇨🇭 Secteurs Suisses :** [Liste à puces]
                 ---
-                **🚀 OFFRE SPECIALE :** Pitch commercial court pour activer le Moteur de Recherche IA Personnalisé.
+                **🚀 OFFRE :** Pitch court pour le Moteur de Recherche IA.
                 """ + "\n" + prompt_content
 
                 response = model.generate_content(full_prompt)
                 
                 st.balloons()
-                st.success("Analyse terminée.")
                 
-                # Affichage propre du rapport
-                st.markdown("""<div style="background-color: #fff; padding: 30px; border-radius: 10px; border-top: 5px solid #003366; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">""", unsafe_allow_html=True)
+                # Boite de résultat propre
+                st.markdown("""<div style="background-color: #fff; padding: 20px; border-radius: 10px; border: 1px solid #ddd; border-top: 5px solid #003366;">""", unsafe_allow_html=True)
                 st.markdown(response.text)
                 st.markdown("</div>", unsafe_allow_html=True)
                 
             except Exception as e:
                 st.error(f"Erreur : {e}")
 
-# --- PIED DE PAGE ---
-st.markdown("---")
-st.markdown("""
-<div style='text-align: center; color: #888;'>
-    <small>© 2025 AlpinaAi Switzerland. Tous droits réservés. | <a href='#'>Mentions Légales</a></small>
-</div>
-""", unsafe_allow_html=True)
+# --- FOOTER ---
+st.markdown("<br><br><p style='text-align: center; color: #ccc; font-size: 12px;'>© 2025 AlpinaAi Switzerland</p>", unsafe_allow_html=True)
