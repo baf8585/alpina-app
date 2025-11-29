@@ -6,51 +6,68 @@ import datetime
 st.set_page_config(
     page_title="AlpinaAi",
     page_icon="🏔️",
-    layout="centered" # On passe en CENTRÉ pour l'effet "App Mobile"
+    layout="centered"
 )
 
-# --- CSS (DESIGN MOBILE & PROPRE) ---
+# --- CSS (DESIGN PASTEL & CONTRASTE FORT) ---
 st.markdown("""
     <style>
-    /* Force le fond blanc et texte sombre si le config.toml n'est pas fait */
+    /* 1. LE FOND GLOBAL (Pastel agréable) */
     .stApp {
-        background-color: white;
-        color: #003366;
+        background-color: #F4F6F9; /* Gris-Bleu très pâle, reposant */
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
     
-    /* Centrer le Logo et Titres */
-    .css-1kyxreq, .css-1rs6os {
-        justify-content: center;
-        text-align: center;
+    /* 2. LE TEXTE (Force le noir/gris foncé partout) */
+    h1, h2, h3, h4, h5, h6 {
+        color: #003366 !important; /* Bleu Alpina pour les titres */
+    }
+    p, div, label, span {
+        color: #1F2937 !important; /* Gris foncé pour le texte normal */
     }
     
-    /* Gros Bouton "Tapable" pour mobile */
+    /* 3. LES CHAMPS DE SAISIE (Input) - Pour qu'on voie ce qu'on écrit */
+    .stTextInput>div>div>input {
+        background-color: #FFFFFF !important; /* Fond blanc pur */
+        color: #000000 !important; /* Texte noir */
+        border: 1px solid #CBD5E1; /* Bordure grise fine */
+        border-radius: 8px;
+    }
+    
+    /* 4. LES RADIOS (Choix QCM) - Pour qu'ils soient lisibles */
+    div[role="radiogroup"] {
+        background-color: #FFFFFF; /* Fond blanc sous les questions */
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #E5E7EB;
+    }
+    
+    /* 5. LE BOUTON (Gros et Visible) */
     .stButton>button {
         width: 100%;
         background-color: #D32F2F; 
-        color: white; 
+        color: white !important; /* Texte blanc forcé */
         font-size: 18px;
         font-weight: bold; 
         padding: 15px 0px; 
-        border-radius: 12px; /* Bords arrondis comme une app */
+        border-radius: 12px;
         border: none;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         margin-top: 20px;
     }
     .stButton>button:hover {background-color: #B71C1C;}
     
-    /* Style des inputs pour être lisibles sur mobile */
-    .stTextInput>div>div>input {
-        background-color: #F8F9FA;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-    }
-    
-    /* Cacher le menu hamburger par défaut de Streamlit pour faire plus "App" */
+    /* 6. CACHER LES ÉLÉMENTS STREAMLIT INUTILES */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    header {visibility: hidden;} /* Cache la barre colorée en haut */
+    header {visibility: hidden;}
     
+    /* 7. Centrer logo et titres */
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 5rem;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -61,33 +78,35 @@ except:
     st.error("⚠️ Clé API manquante.")
     st.stop()
 
-# --- HEADER (LOGO & ACCROCHE) ---
-# On utilise des colonnes pour centrer l'image parfaitement
+# --- HEADER ---
 col1, col2, col3 = st.columns([1, 2, 1])
-
 with col2:
     try:
-        # Affiche le logo en grand au centre
         st.image("logo.png", use_container_width=True) 
     except:
         st.markdown("<h1 style='text-align: center;'>🏔️ AlpinaAi</h1>", unsafe_allow_html=True)
 
-st.markdown("<h3 style='text-align: center; color: #003366;'>Votre Potentiel. Toutes les Opportunités Suisses.</h3>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #666;'>L'IA qui scanne le marché caché pour vous.</p>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center; margin-bottom: 5px;'>Votre Potentiel. Toutes les Opportunités Suisses.</h3>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #555 !important; font-size: 14px;'>L'IA qui scanne le marché caché pour vous.</p>", unsafe_allow_html=True)
 
-# --- LES SERVICES (SOUS FORME D'ACCORDÉON DISCRET) ---
-# On les met ici pour rassurer, mais fermés pour ne pas gêner le scroll vers le test
+# --- SERVICES (Expanders stylés) ---
+# On met un fond blanc pour que ça ressorte sur le pastel
 with st.expander("📌 Voir nos Solutions & Tarifs"):
-    st.write("✅ **Audit Flash (Gratuit)** : Ce que vous faites maintenant.")
-    st.write("🚀 **Pack Essential (150 CHF)** : CV + LinkedIn + Base de Talents.")
-    st.write("💎 **Pack Elite (Sur devis)** : Coaching + Chasseur de tête dédié.")
-    st.info("Pour les entreprises : partner@alpinaai.ch")
+    st.markdown("""
+    <div style='background-color: white; padding: 10px; border-radius: 5px;'>
+    ✅ <b>Audit Flash (Gratuit)</b> : Ce que vous faites maintenant.<br>
+    🚀 <b>Pack Essential (150 CHF)</b> : CV + LinkedIn + Base de Talents.<br>
+    💎 <b>Pack Elite (Sur devis)</b> : Coaching + Chasseur de tête dédié.<br>
+    <br>
+    <small>📧 partner@alpinaai.ch</small>
+    </div>
+    """, unsafe_allow_html=True)
 
 st.markdown("---")
 
-# --- LE TEST (CORPS PRINCIPAL) ---
+# --- LE TEST ---
 st.markdown("### 📝 Bilan Flash (Gratuit)")
-st.caption("Prenez 2 minutes. Répondez spontanément.")
+st.write("Prenez 2 minutes. Répondez spontanément.")
 
 with st.form("quiz_form"):
     # Champs persos
@@ -96,11 +115,9 @@ with st.form("quiz_form"):
     email = st.text_input("Email Pro")
     pays = st.text_input("Pays")
     
-    st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
     
-    # Questions (Format vertical pour mobile)
-    # Sur mobile, on évite les colonnes pour les questions, on empile tout.
-    
+    # Questions
     questions = {
         "Q1_Deadline": "Une deadline impossible tombe. Réaction ?",
         "Q2_Bureau": "Votre espace idéal ?",
@@ -136,7 +153,7 @@ with st.form("quiz_form"):
     for key, text in questions.items():
         st.write(f"**{text}**")
         reponses_user[key] = st.radio("Choix", options[key], label_visibility="collapsed", key=key)
-        st.write("") # Petit espace
+        st.write("") 
         
     st.markdown("---")
     submitted = st.form_submit_button("🚀 ANALYSER MON PROFIL")
@@ -170,8 +187,8 @@ if submitted:
                 
                 st.balloons()
                 
-                # Boite de résultat propre
-                st.markdown("""<div style="background-color: #fff; padding: 20px; border-radius: 10px; border: 1px solid #ddd; border-top: 5px solid #003366;">""", unsafe_allow_html=True)
+                # Boite de résultat propre (Fond blanc sur fond pastel)
+                st.markdown("""<div style="background-color: #fff; padding: 25px; border-radius: 10px; border: 1px solid #ddd; border-top: 5px solid #003366; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">""", unsafe_allow_html=True)
                 st.markdown(response.text)
                 st.markdown("</div>", unsafe_allow_html=True)
                 
@@ -179,4 +196,4 @@ if submitted:
                 st.error(f"Erreur : {e}")
 
 # --- FOOTER ---
-st.markdown("<br><br><p style='text-align: center; color: #ccc; font-size: 12px;'>© 2025 AlpinaAi Switzerland</p>", unsafe_allow_html=True)
+st.markdown("<br><br><p style='text-align: center; color: #999 !important; font-size: 12px;'>© 2025 AlpinaAi Switzerland</p>", unsafe_allow_html=True)
